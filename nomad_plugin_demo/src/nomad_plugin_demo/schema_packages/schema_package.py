@@ -61,6 +61,8 @@ class NewSchemaPackage(Schema):
         set_id_key = "Set aktuell"
         datetime_key = "Datum"
         averaging_window = 30
+        
+        print("Experiment count in testbench:", len(data))
 
         fig_line = px.line(data, x="Datum", y="p_Luft/bar_ein")
         self.figures.append(fig_line)
