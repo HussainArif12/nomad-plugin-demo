@@ -21,30 +21,29 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 configuration = config.get_plugin_entry_point(
-    "nomad_plugin_demo.schema_packages:schema_package_entry_point"
+    'nomad_plugin_demo.schema_packages:schema_package_entry_point'
 )
 
 m_package = SchemaPackage()
 
 
 class NewSchemaPackage(Schema):
-
     quantities = [
         {
-            "Datum": Quantity(
+            'Datum': Quantity(
                 type=str,
                 a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity),
             ),
-            "Kommentar": Quantity(type=str),
-            "Set aktuell": Quantity(type=int),
-            "Set Kommentar": Quantity(type=str),
-            "U1": Quantity(type=float),
-            "MW p Ali Kat aus": Quantity(type=float),
-            "T_Ali Kat aus": Quantity(type=float),
-            "V Luft aus": Quantity(type=float),
-            "p_Luft/bar_ein": Quantity(type=float),
-            "T_Luft_ein": Quantity(type=float),
-            "Strom I / A":  Quantity(type=float),
+            'Kommentar': Quantity(type=str),
+            'Set aktuell': Quantity(type=int),
+            'Set Kommentar': Quantity(type=str),
+            'U1': Quantity(type=float),
+            'MW p Ali Kat aus': Quantity(type=float),
+            'T_Ali Kat aus': Quantity(type=float),
+            'V Luft aus': Quantity(type=float),
+            'p_Luft/bar_ein': Quantity(type=float),
+            'T_Luft_ein': Quantity(type=float),
+            'Strom I / A': Quantity(type=float),
         }
     ]
     name = Quantity(
@@ -54,63 +53,71 @@ class NewSchemaPackage(Schema):
     message = Quantity(type=str)
     figures = []
 
-    def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
-        logger.info("NewSchema.normalize", parameter=configuration.parameter)
+        logger.info('NewSchema.normalize', parameter=configuration.parameter)
         data = archive.data.quantities
-        set_id_key = "Set aktuell"
-        datetime_key = "Datum"
+        set_id_key = 'Set aktuell'
+        datetime_key = 'Datum'
         averaging_window = 30
-        
-        print("Experiment count in testbench:", len(data))
 
-        fig_line = px.line(data, x="Datum", y="p_Luft/bar_ein")
+        print('Experiment count in testbench:', len(data))
+
+        fig_line = px.line(data, x='Datum', y='p_Luft/bar_ein')
         self.figures.append(fig_line)
 
-        filtered_data = [row for row in data if row["Set Kommentar"] == "0,60V"]
-        df_subset = pd.DataFrame(filtered_data).sort_values([datetime_key])#
+        filtered_data = [row for row in data if row['Set Kommentar'] == '0,60V']
+        df_subset = pd.DataFrame(filtered_data).sort_values([datetime_key])  #
         set_change = df_subset[set_id_key].diff().fillna(0)
         # Change data types to integer
-        set_change = set_change.astype("int")
+        set_change = set_change.astype('int')
         # Set all non-zero values to 1
         set_change[set_change != 0] = 1
         # Build the cumulative sum along the rows to count changing operating modes and add to data frame
-        df_subset["set_count"] = set_change.cumsum()
-        fig_scatter = px.scatter(df_subset, x="Datum", y="Set aktuell")
+        df_subset['set_count'] = set_change.cumsum()
+        fig_scatter = px.scatter(df_subset, x='Datum', y='Set aktuell')
         self.figures.append(fig_scatter)
 
-        df_subset_grouped = df_subset.drop(df_subset.columns.difference(["U1", "Strom I / A", "set_count"]), axis=1)
-        grouped_subset = df_subset_grouped.groupby(
-            ["set_count"]
+        df_subset_grouped = df_subset.drop(
+            df_subset.columns.difference(['U1', 'Strom I / A', 'set_count']), axis=1
         )
+        grouped_subset = df_subset_grouped.groupby(['set_count'])
         df_averaged = grouped_subset.tail(averaging_window)
         df_averaged = (
-            grouped_subset.tail(averaging_window).groupby(["set_count"]).mean(numeric_only=True)
+            grouped_subset.tail(averaging_window)
+            .groupby(['set_count'])
+            .mean(numeric_only=True)
         )
         df_averaged = grouped_subset.apply(
             lambda x: x.tail(min(averaging_window, len(x) - 2)).mean(),
             include_groups=False,
         )
         df_averaged.reset_index(inplace=True)
-        fig_scatter = make_subplots(specs=[[{"secondary_y": True}]])
+        fig_scatter = make_subplots(specs=[[{'secondary_y': True}]])
         # Add traces
-        fig_scatter.add_trace(go.Scatter(x=df_averaged['set_count'], y=df_averaged['U1'], name="Voltage"),
-                    secondary_y=False)
+        fig_scatter.add_trace(
+            go.Scatter(x=df_averaged['set_count'], y=df_averaged['U1'], name='Voltage'),
+            secondary_y=False,
+        )
 
-        fig_scatter.add_trace(go.Scatter(x=df_averaged['set_count'], y=df_averaged['Strom I / A'], name="Current"),
-                    secondary_y=True)
+        fig_scatter.add_trace(
+            go.Scatter(
+                x=df_averaged['set_count'], y=df_averaged['Strom I / A'], name='Current'
+            ),
+            secondary_y=True,
+        )
 
         # Add figure title
-        fig_scatter.update_layout(title_text="Double Y Axis Example")
+        fig_scatter.update_layout(title_text='Double Y Axis Example')
 
         # Set x-axis title
-        fig_scatter.update_xaxes(title_text="Set Count")
+        fig_scatter.update_xaxes(title_text='Set Count')
 
         # Set y-axes titles
-        fig_scatter.update_yaxes(title_text="Voltage / V", secondary_y=False)
-        fig_scatter.update_yaxes(title_text="Current / A", secondary_y=True)
+        fig_scatter.update_yaxes(title_text='Voltage / V', secondary_y=False)
+        fig_scatter.update_yaxes(title_text='Current / A', secondary_y=True)
         self.figures.append(fig_scatter)
-        
+
         column_dict = {col: col + '_avg' for col in df_averaged.columns}
         df_averaged.rename(columns=column_dict, inplace=True)
         new_columns = df_averaged.columns
@@ -121,12 +128,11 @@ class NewSchemaPackage(Schema):
         df_combined_averaged = pd.concat([df_last_rows_of_groups, df_averaged], axis=1)
         df_combined_averaged.set_index('index', inplace=True)
         df_subset_extended = pd.merge(df_subset, df_combined_averaged, how='outer')
-        
 
         # Plot raw data subset and corresponding averaged
         data = df_subset_extended
         x_values = data[datetime_key]
-        columns = ["set_count", 'U1', 'U1_avg']
+        columns = ['set_count', 'U1', 'U1_avg']
         y_values = [data[i] for i in columns]
 
         modes = ['lines', 'markers', 'markers']
@@ -138,18 +144,24 @@ class NewSchemaPackage(Schema):
 
         fig_go_scatter = go.Figure()
         for i in range(len(y_values)):
-            fig_go_scatter.add_trace(go.Scatter(x=x_values, y=y_values[i], mode=modes[i],
-                                    marker=markers[i], name=columns[i]))
+            fig_go_scatter.add_trace(
+                go.Scatter(
+                    x=x_values,
+                    y=y_values[i],
+                    mode=modes[i],
+                    marker=markers[i],
+                    name=columns[i],
+                )
+            )
             # fig_2.add_trace(go.Scatter(x=x_values, y=data['U1_averaged'],
             #                            mode='markers'))
         fig_go_scatter.update_layout(
-            font_family="Arial",
-            font_color="black",
+            font_family='Arial',
+            font_color='black',
             font_size=14,
-
         )
-        fig_go_scatter.update_xaxes(title="DateTime")
-        fig_go_scatter.update_yaxes(title="Value")
+        fig_go_scatter.update_xaxes(title='DateTime')
+        fig_go_scatter.update_yaxes(title='Value')
         self.figures.append(fig_go_scatter)
 
 

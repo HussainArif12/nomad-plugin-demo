@@ -9,4 +9,4 @@ def test_parse_file():
     parser = NewParser()
     archive = EntryArchive()
     parser.parse('tests/data/BZ011_Rohdaten.dat', archive, logging.getLogger())
-    assert "Datum" in (archive.data.quantities)[0]
+    assert 'Datum' in (archive.data.quantities)[0]
