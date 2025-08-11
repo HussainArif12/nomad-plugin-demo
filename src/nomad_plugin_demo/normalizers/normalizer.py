@@ -18,7 +18,7 @@ configuration = config.get_plugin_entry_point(
 
 
 class NewNormalizer(Normalizer):
-    def normalize(self, archive: EntryArchive, logger: BoundLogger) -> None:
+    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
         logger.info('NewNormalizer.normalize', parameter=configuration.parameter)
         if archive.results and archive.results.material:

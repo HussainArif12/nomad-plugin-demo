@@ -15,7 +15,7 @@ if TYPE_CHECKING:
 from nomad.config import config
 from nomad.datamodel.metainfo.workflow import Workflow
 from nomad.parsing.parser import MatchingParser
-
+import os
 configuration = config.get_plugin_entry_point(
     'nomad_plugin_demo.parsers:parser_entry_point'
 )
@@ -36,6 +36,8 @@ class NewParser(MatchingParser):
             dataframe['Datum'], format=datetime_format
         ).dt.strftime(datetime_format)
         archive.data = NewSchemaPackage()
+
+        archive.data.name = os.path.basename(mainfile)
 
         archive.data.quantities = dataframe[
             [

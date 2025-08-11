@@ -19,6 +19,7 @@ import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
+from nomad.datamodel.metainfo.plot import PlotlyFigure, PlotSection
 
 configuration = config.get_plugin_entry_point(
     'nomad_plugin_demo.schema_packages:schema_package_entry_point'
@@ -27,7 +28,7 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
-class NewSchemaPackage(Schema):
+class NewSchemaPackage(PlotSection, Schema):
     quantities = [
         {
             'Datum': Quantity(
@@ -56,6 +57,8 @@ class NewSchemaPackage(Schema):
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
         logger.info('NewSchema.normalize', parameter=configuration.parameter)
+        archive.metadata.entry_name = self.name
+        print(self.name)
         data = archive.data.quantities
         set_id_key = 'Set aktuell'
         datetime_key = 'Datum'
@@ -76,7 +79,7 @@ class NewSchemaPackage(Schema):
         # Build the cumulative sum along the rows to count changing operating modes and add to data frame
         df_subset['set_count'] = set_change.cumsum()
         fig_scatter = px.scatter(df_subset, x='Datum', y='Set aktuell')
-        self.figures.append(fig_scatter)
+        self.figures.append(PlotlyFigure(fig_scatter.to_json()))
 
         df_subset_grouped = df_subset.drop(
             df_subset.columns.difference(['U1', 'Strom I / A', 'set_count']), axis=1
@@ -116,11 +119,11 @@ class NewSchemaPackage(Schema):
         # Set y-axes titles
         fig_scatter.update_yaxes(title_text='Voltage / V', secondary_y=False)
         fig_scatter.update_yaxes(title_text='Current / A', secondary_y=True)
-        self.figures.append(fig_scatter)
+        self.figures.append(PlotlyFigure(fig_scatter.to_json()))
 
         column_dict = {col: col + '_avg' for col in df_averaged.columns}
         df_averaged.rename(columns=column_dict, inplace=True)
-        new_columns = df_averaged.columns
+
         # Get the last rows of each from the full subset to preserve corresponding index and datetimes
         df_last_rows_of_groups = df_subset_grouped.groupby(['set_count']).tail(1)
         df_last_rows_of_groups.reset_index(inplace=True)
@@ -162,7 +165,7 @@ class NewSchemaPackage(Schema):
         )
         fig_go_scatter.update_xaxes(title='DateTime')
         fig_go_scatter.update_yaxes(title='Value')
-        self.figures.append(fig_go_scatter)
+        self.figures.append(PlotlyFigure(fig_go_scatter.to_json()))
 
 
 m_package.__init_metainfo__()
