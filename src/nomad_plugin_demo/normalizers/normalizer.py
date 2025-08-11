@@ -2,11 +2,10 @@ from typing import (
     TYPE_CHECKING,
 )
 
-if TYPE_CHECKING:
-    from nomad.datamodel.datamodel import (
+from nomad.datamodel.datamodel import (
         EntryArchive,
     )
-    from structlog.stdlib import (
+from structlog.stdlib import (
         BoundLogger,
     )
 
@@ -19,7 +18,7 @@ configuration = config.get_plugin_entry_point(
 
 
 class NewNormalizer(Normalizer):
-    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+    def normalize(self, archive: EntryArchive, logger: BoundLogger) -> None:
         super().normalize(archive, logger)
         logger.info('NewNormalizer.normalize', parameter=configuration.parameter)
         if archive.results and archive.results.material:
