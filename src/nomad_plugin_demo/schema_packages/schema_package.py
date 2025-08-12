@@ -57,9 +57,9 @@ class NewSchemaPackage(PlotSection, Schema):
     def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
         super().normalize(archive, logger)
         logger.info('NewSchema.normalize', parameter=configuration.parameter)
-        archive.metadata.entry_name = self.name
-        print(self.name)
         data = archive.data.quantities
+        archive.metadata.entry_name = self.name
+
         set_id_key = 'Set aktuell'
         datetime_key = 'Datum'
         averaging_window = 30
