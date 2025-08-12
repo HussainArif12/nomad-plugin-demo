@@ -70,7 +70,9 @@ class NewSchemaPackage(PlotSection, Schema):
             )
 
         fig_line = px.line(data, x="Datum", y="p_Luft_bar_ein")
-        self.figures.append(PlotlyFigure(fig_line.to_plotly_json()))
+        plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
+
+        self.figures.append(plotly_figure)
         # filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
         # df_subset = pd.DataFrame(filtered_data).sort_values([datetime_key])  #
         # set_change = df_subset[set_id_key].diff().fillna(0)
