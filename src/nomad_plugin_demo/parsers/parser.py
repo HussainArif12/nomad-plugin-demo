@@ -37,7 +37,8 @@ class NewParser(MatchingParser):
         logger: "BoundLogger",
         child_archives: dict[str, "EntryArchive"] = None,
     ) -> None:
-        logger.info("NewParser.parse", parameter=configuration.parameter)
+        if logger is not None:
+            logger.info("NewParser.parse", parameter=configuration.parameter)
         datetime_format = "%d.%m.%y %H:%M:%S"
         dataframe = pd.read_csv(mainfile, sep="\t", decimal=",")
 

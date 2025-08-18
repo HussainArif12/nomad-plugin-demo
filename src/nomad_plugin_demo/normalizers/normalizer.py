@@ -3,23 +3,24 @@ from typing import (
 )
 
 from nomad.datamodel.datamodel import (
-        EntryArchive,
-    )
+    EntryArchive,
+)
 from structlog.stdlib import (
-        BoundLogger,
-    )
+    BoundLogger,
+)
 
 from nomad.config import config
 from nomad.normalizing import Normalizer
 
 configuration = config.get_plugin_entry_point(
-    'nomad_plugin_demo.normalizers:normalizer_entry_point'
+    "nomad_plugin_demo.normalizers:normalizer_entry_point"
 )
 
 
 class NewNormalizer(Normalizer):
-    def normalize(self, archive: 'EntryArchive', logger: 'BoundLogger') -> None:
+    def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
         super().normalize(archive, logger)
-        logger.info('NewNormalizer.normalize', parameter=configuration.parameter)
+        if logger is not None:
+            logger.info("NewNormalizer.normalize", parameter=configuration.parameter)
         if archive.results and archive.results.material:
-            archive.results.material.elements = ['C', 'O']
+            archive.results.material.elements = ["C", "O"]
