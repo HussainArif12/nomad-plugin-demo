@@ -132,3 +132,5 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+tests/data/keep_1.py
+tests/small_BZ011_Rohdaten.dat

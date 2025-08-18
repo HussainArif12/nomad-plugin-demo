@@ -38,9 +38,6 @@ class Entry(MSection):
     Strom_I___A = Quantity(type=float)
     U1 = Quantity(type=float)
 
-    def normalize(self, archive, logger):
-        super(Entry, self).normalize(archive, logger)
-
 
 class NewSchemaPackage(PlotSection, Schema):
     entries = SubSection(section=Entry, repeats=True)
@@ -52,7 +49,9 @@ class NewSchemaPackage(PlotSection, Schema):
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
         super().normalize(archive, logger)
-        logger.info("NewSchema.normalize", parameter=configuration.parameter)
+
+        if logger is not None:
+            logger.info("NewSchema.normalize", parameter=configuration.parameter)
 
         data = archive.data.entries
         archive.metadata.entry_name = self.name
@@ -65,24 +64,29 @@ class NewSchemaPackage(PlotSection, Schema):
             data.append(
                 {
                     "Datum": item.get("Datum"),
+                    "Set_aktuell": item.get("Set_aktuell"),
                     "p_Luft_bar_ein": item.get("p_Luft_bar_ein"),
+                    "Set_Kommentar": item.get("Set_Kommentar"),
                 }
             )
 
         fig_line = px.line(data, x="Datum", y="p_Luft_bar_ein")
+        fig_line.show()
         plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
 
         self.figures.append(plotly_figure)
-        # filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
-        # df_subset = pd.DataFrame(filtered_data).sort_values([datetime_key])  #
+        filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
+
+        df_subset = pd.DataFrame(filtered_data)
         # set_change = df_subset[set_id_key].diff().fillna(0)
         # # Change data types to integer
         # set_change = set_change.astype("int")
-        # # Set all non-zero values to 1
+        # # # Set all non-zero values to 1
         # set_change[set_change != 0] = 1
-        # # Build the cumulative sum along the rows to count changing operating modes and add to data frame
+        # # # Build the cumulative sum along the rows to count changing operating modes and add to data frame
         # df_subset["set_count"] = set_change.cumsum()
         # fig_scatter = px.scatter(df_subset, x="Datum", y="Set_aktuell")
+        # fig_scatter.show()
         # self.figures.append(PlotlyFigure(fig_scatter.to_json()))
 
         # df_subset_grouped = df_subset.drop(
