@@ -60,20 +60,27 @@ class NewSchemaPackage(PlotSection, Schema):
         averaging_window = 30
         print("Experiment count in testbench:", len(data))
         data = []
-        for item in archive.data.entries:
-            data.append(
-                {
-                    "Datum": item.get("Datum"),
-                    "Set_aktuell": item.get("Set_aktuell"),
-                    "p_Luft_bar_ein": item.get("p_Luft_bar_ein"),
-                    "Set_Kommentar": item.get("Set_Kommentar"),
-                }
-            )
+        # Dynamically extract all fields present in the first entry
+        members = [
+            attr
+            for attr in dir(archive.data.entries[0])
+            if not callable(getattr(archive.data.entries[0], attr))
+            and not attr.startswith("__")
+        ]
 
-        fig_line = px.line(data, x="Datum", y="p_Luft_bar_ein")
+        for item in archive.data.entries:
+            data.append({member: item.get(member) for member in members})
+
+        fig_line = px.line(
+            data,
+            x="Datum",
+            y="p_Luft_bar_ein",
+            title="Correlation between Datum and p_Luft_bar_ein",
+        )
         plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
 
         self.figures.append(plotly_figure)
+
         filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
         if not len(filtered_data):
             return
@@ -87,95 +94,104 @@ class NewSchemaPackage(PlotSection, Schema):
         set_change[set_change != 0] = 1
         # # # Build the cumulative sum along the rows to count changing operating modes and add to data frame
         df_subset["set_count"] = set_change.cumsum()
-        fig_scatter = px.scatter(df_subset, x="Datum", y="Set_aktuell")
+        fig_scatter = px.scatter(
+            df_subset,
+            x="Datum",
+            y="Set_aktuell",
+            title="Correlation between Datum and Set_aktuell",
+        )
         # fig_scatter.show()
         self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
-        # df_subset_grouped = df_subset.drop(
-        #     df_subset.columns.difference(["U1", "Strom I_A", "set_count"]), axis=1
-        # )
-        # grouped_subset = df_subset_grouped.groupby(["set_count"])
-        # df_averaged = grouped_subset.tail(averaging_window)
-        # df_averaged = (
-        #     grouped_subset.tail(averaging_window)
-        #     .groupby(["set_count"])
-        #     .mean(numeric_only=True)
-        # )
-        # df_averaged = grouped_subset.apply(
-        #     lambda x: x.tail(min(averaging_window, len(x) - 2)).mean(),
-        #     include_groups=False,
-        # )
-        # df_averaged.reset_index(inplace=True)
-        # fig_scatter = make_subplots(specs=[[{"secondary_y": True}]])
-        # # Add traces
-        # fig_scatter.add_trace(
-        #     go.Scatter(x=df_averaged["set_count"], y=df_averaged["U1"], name="Voltage"),
-        #     secondary_y=False,
-        # )
+        df_subset_grouped = df_subset.drop(
+            df_subset.columns.difference(["U1", "Strom_I___A", "set_count"]), axis=1
+        )
+        grouped_subset = df_subset_grouped.groupby(["set_count"])
+        df_averaged = grouped_subset.tail(averaging_window)
+        df_averaged = (
+            grouped_subset.tail(averaging_window)
+            .groupby(["set_count"])
+            .mean(numeric_only=True)
+        )
+        df_averaged = grouped_subset.apply(
+            lambda x: x.tail(min(averaging_window, len(x) - 2)).mean(),
+            include_groups=False,
+        )
+        df_averaged.reset_index(inplace=True)
+        fig_scatter = make_subplots(specs=[[{"secondary_y": True}]])
+        # Add traces
+        fig_scatter.add_trace(
+            go.Scatter(x=df_averaged["set_count"], y=df_averaged["U1"], name="Voltage"),
+            secondary_y=False,
+        )
 
-        # fig_scatter.add_trace(
-        #     go.Scatter(
-        #         x=df_averaged["set_count"], y=df_averaged["Strom I_A"], name="Current"
-        #     ),
-        #     secondary_y=True,
-        # )
+        fig_scatter.add_trace(
+            go.Scatter(
+                x=df_averaged["set_count"],
+                y=df_averaged["Strom_I___A"],
+                name="Current",
+            ),
+            secondary_y=True,
+        )
 
-        # # Add figure title
-        # fig_scatter.update_layout(title_text="Double Y Axis Example")
+        # Add figure title
+        fig_scatter.update_layout(title_text="Double Y Axis Example")
 
-        # # Set x-axis title
-        # fig_scatter.update_xaxes(title_text="Set Count")
+        # Set x-axis title
+        fig_scatter.update_xaxes(title_text="Set Count")
 
-        # # Set y-axes titles
-        # fig_scatter.update_yaxes(title_text="Voltage / V", secondary_y=False)
-        # fig_scatter.update_yaxes(title_text="Current / A", secondary_y=True)
-        # self.figures.append(PlotlyFigure(fig_scatter.to_json()))
+        # Set y-axes titles
+        fig_scatter.update_yaxes(title_text="Voltage / V", secondary_y=False)
+        fig_scatter.update_yaxes(title_text="Current / A", secondary_y=True)
+        # fig_scatter.show()
+        self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
-        # column_dict = {col: col + "_avg" for col in df_averaged.columns}
-        # df_averaged.rename(columns=column_dict, inplace=True)
+        column_dict = {col: col + "_avg" for col in df_averaged.columns}
+        df_averaged.rename(columns=column_dict, inplace=True)
 
         # # Get the last rows of each from the full subset to preserve corresponding index and datetimes
-        # df_last_rows_of_groups = df_subset_grouped.groupby(["set_count"]).tail(1)
-        # df_last_rows_of_groups.reset_index(inplace=True)
-        # df_last_rows_of_groups.set_index(["set_count"], inplace=True)
-        # df_combined_averaged = pd.concat([df_last_rows_of_groups, df_averaged], axis=1)
-        # df_combined_averaged.set_index("index", inplace=True)
-        # df_subset_extended = pd.merge(df_subset, df_combined_averaged, how="outer")
+        df_last_rows_of_groups = df_subset_grouped.groupby(["set_count"]).tail(1)
+        df_last_rows_of_groups.reset_index(inplace=True)
+        df_last_rows_of_groups.set_index(["set_count"], inplace=True)
+        df_combined_averaged = pd.concat([df_last_rows_of_groups, df_averaged], axis=1)
+        df_combined_averaged.set_index("index", inplace=True)
+        df_subset_extended = pd.merge(df_subset, df_combined_averaged, how="outer")
 
-        # # Plot raw data subset and corresponding averaged
-        # data = df_subset_extended
-        # x_values = data[datetime_key]
-        # columns = ["set_count", "U1", "U1_avg"]
-        # y_values = [data[i] for i in columns]
+        # Plot raw data subset and corresponding averaged
+        data = df_subset_extended
+        x_values = data[datetime_key]
+        columns = ["set_count", "U1", "U1_avg"]
+        y_values = [data[i] for i in columns]
 
-        # modes = ["lines", "markers", "markers"]
-        # markers = [
-        #     {"size": 1},
-        #     {"size": 5},
-        #     {"size": 10},
-        # ]
+        modes = ["lines", "markers", "markers"]
+        markers = [
+            {"size": 1},
+            {"size": 5},
+            {"size": 10},
+        ]
 
-        # fig_go_scatter = go.Figure()
-        # for i in range(len(y_values)):
-        #     fig_go_scatter.add_trace(
-        #         go.Scatter(
-        #             x=x_values,
-        #             y=y_values[i],
-        #             mode=modes[i],
-        #             marker=markers[i],
-        #             name=columns[i],
-        #         )
-        #     )
-        #     # fig_2.add_trace(go.Scatter(x=x_values, y=data['U1_averaged'],
-        #     #                            mode='markers'))
-        # fig_go_scatter.update_layout(
-        #     font_family="Arial",
-        #     font_color="black",
-        #     font_size=14,
-        # )
-        # fig_go_scatter.update_xaxes(title="DateTime")
-        # fig_go_scatter.update_yaxes(title="Value")
-        # self.figures.append(PlotlyFigure(fig_go_scatter.to_json()))
+        fig_go_scatter = go.Figure(layout={"title": "Scatter plot"})
+        for i in range(len(y_values)):
+            fig_go_scatter.add_trace(
+                go.Scatter(
+                    x=x_values,
+                    y=y_values[i],
+                    mode=modes[i],
+                    marker=markers[i],
+                    name=columns[i],
+                )
+            )
+            # fig_2.add_trace(go.Scatter(x=x_values, y=data['U1_averaged'],
+            #                            mode='markers'))
+        fig_go_scatter.update_layout(
+            font_family="Arial",
+            font_color="black",
+            font_size=14,
+        )
+        fig_go_scatter.update_xaxes(title="DateTime")
+        fig_go_scatter.update_yaxes(title="Value")
+        # fig_go_scatter.show()
+        self.figures.append(PlotlyFigure(figure=fig_go_scatter.to_plotly_json()))
 
 
 m_package.__init_metainfo__()

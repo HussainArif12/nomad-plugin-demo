@@ -54,10 +54,7 @@ class NewParser(MatchingParser):
         data_dict = dataframe[dataframe.columns].to_dict(orient="records")
         for item in data_dict:
             entry = Entry()
-            entry.Datum = item.get("Datum")
-            entry.Set_aktuell = item.get("Set_aktuell")
-            entry.p_Luft_bar_ein = item.get("p_Luft_bar_ein")
-            entry.Set_Kommentar = item.get("Set_Kommentar")
-            entry.Strom_I___A = item.get("Strom_I___A")
-            entry.U1 = item.get("U1")
+            for key, value in item.items():
+                setattr(entry, key, value)
+
             archive.data.entries.append(entry)
