@@ -55,7 +55,7 @@ class NewSchemaPackage(PlotSection, Schema):
 
         data = archive.data.entries
         archive.metadata.entry_name = self.name
-        set_id_key = "Set aktuell"
+        set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
         print("Experiment count in testbench:", len(data))
@@ -75,18 +75,21 @@ class NewSchemaPackage(PlotSection, Schema):
 
         self.figures.append(plotly_figure)
         filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
+        if not len(filtered_data):
+            return
 
         df_subset = pd.DataFrame(filtered_data)
-        # set_change = df_subset[set_id_key].diff().fillna(0)
+
+        set_change = df_subset[set_id_key].diff().fillna(0)
         # # Change data types to integer
-        # set_change = set_change.astype("int")
+        set_change = set_change.astype("int")
         # # # Set all non-zero values to 1
-        # set_change[set_change != 0] = 1
+        set_change[set_change != 0] = 1
         # # # Build the cumulative sum along the rows to count changing operating modes and add to data frame
-        # df_subset["set_count"] = set_change.cumsum()
-        # fig_scatter = px.scatter(df_subset, x="Datum", y="Set_aktuell")
+        df_subset["set_count"] = set_change.cumsum()
+        fig_scatter = px.scatter(df_subset, x="Datum", y="Set_aktuell")
         # fig_scatter.show()
-        # self.figures.append(PlotlyFigure(fig_scatter.to_json()))
+        self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         # df_subset_grouped = df_subset.drop(
         #     df_subset.columns.difference(["U1", "Strom I_A", "set_count"]), axis=1
