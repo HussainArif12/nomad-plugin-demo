@@ -71,7 +71,6 @@ class NewSchemaPackage(PlotSection, Schema):
             )
 
         fig_line = px.line(data, x="Datum", y="p_Luft_bar_ein")
-        fig_line.show()
         plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
 
         self.figures.append(plotly_figure)
