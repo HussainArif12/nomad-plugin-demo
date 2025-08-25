@@ -87,7 +87,6 @@ class NewSchemaPackage(PlotSection, Schema):
             value.decode("utf-8") for value in data["Set_Kommentar"]
         ]
         data = pd.DataFrame(data).to_dict(orient="records")
-
         fig_line = px.line(
             data,
             x="Datum",
@@ -100,7 +99,7 @@ class NewSchemaPackage(PlotSection, Schema):
             )
 
         plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
-        self.figures.append(plotly_figure)
+        # self.figures.append(plotly_figure)
 
         filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
         if not len(filtered_data):
@@ -122,7 +121,7 @@ class NewSchemaPackage(PlotSection, Schema):
             title="Correlation between Datum and Set_aktuell",
         )
 
-        self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
+        # self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         df_subset_grouped = df_subset.drop(
             df_subset.columns.difference(["U1", "Strom_I___A", "set_count"]), axis=1
@@ -165,7 +164,7 @@ class NewSchemaPackage(PlotSection, Schema):
         fig_scatter.update_yaxes(title_text="Voltage / V", secondary_y=False)
         fig_scatter.update_yaxes(title_text="Current / A", secondary_y=True)
         # fig_scatter.show()
-        self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
+        # self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         column_dict = {col: col + "_avg" for col in df_averaged.columns}
         df_averaged.rename(columns=column_dict, inplace=True)
@@ -211,8 +210,8 @@ class NewSchemaPackage(PlotSection, Schema):
         )
         fig_go_scatter.update_xaxes(title="DateTime")
         fig_go_scatter.update_yaxes(title="Value")
-        fig_go_scatter.show()
-        self.figures.append(PlotlyFigure(figure=fig_go_scatter.to_plotly_json()))
+        # fig_go_scatter.show()
+        # self.figures.append(PlotlyFigure(figure=fig_go_scatter.to_plotly_json()))
 
 
 m_package.__init_metainfo__()

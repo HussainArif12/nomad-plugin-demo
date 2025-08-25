@@ -134,3 +134,4 @@ dmypy.json
 .pyre/
 tests/data/keep_1.py
 tests/small_BZ011_Rohdaten.dat
+tests/data/.volumes/*
