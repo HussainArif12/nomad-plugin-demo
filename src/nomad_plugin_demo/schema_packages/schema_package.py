@@ -22,6 +22,9 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from nomad.datamodel.metainfo.plot import PlotlyFigure, PlotSection
 from nomad.metainfo import MEnum, MSection, Quantity, SchemaPackage, SubSection
+from nomad.datamodel.hdf5 import HDF5Reference
+from nomad.units import ureg
+
 
 configuration = config.get_plugin_entry_point(
     "nomad_plugin_demo.schema_packages:schema_package_entry_point"
@@ -31,12 +34,13 @@ m_package = SchemaPackage()
 
 
 class Entry(MSection):
-    Datum = Quantity(type=str)
-    Set_aktuell = Quantity(type=int)
-    p_Luft_bar_ein = Quantity(type=float)
-    Set_Kommentar = Quantity(type=str)
-    Strom_I___A = Quantity(type=float)
-    U1 = Quantity(type=float)
+    Datum = Quantity(type=HDF5Reference, shape=[], unit="dimensionless")
+    Set_aktuell = Quantity(type=HDF5Reference, shape=[])
+    p_Luft_bar_ein = Quantity(type=HDF5Reference, shape=[])
+    Set_Kommentar = Quantity(type=HDF5Reference, shape=[])
+    Strom_I___A = Quantity(type=HDF5Reference, shape=[])
+    U1 = Quantity(type=HDF5Reference, shape=[])
+    # value = Quantity(type=HDF5Reference, shape=[])
 
 
 class NewSchemaPackage(PlotSection, Schema):
@@ -58,8 +62,7 @@ class NewSchemaPackage(PlotSection, Schema):
         set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
-        print("Experiment count in testbench:", len(data))
-        data = []
+
         # Dynamically extract all fields present in the first entry
         members = [
             attr
@@ -67,9 +70,23 @@ class NewSchemaPackage(PlotSection, Schema):
             if not callable(getattr(archive.data.entries[0], attr))
             and not attr.startswith("__")
         ]
+        data = {}
+        for member in members:
+            try:
+                data[member] = (
+                    (
+                        HDF5Reference.read_dataset(archive, self.entries[0].get(member))
+                    ).tolist(),
+                )[0]
 
-        for item in archive.data.entries:
-            data.append({member: item.get(member) for member in members})
+            except:
+                pass
+
+        data["Datum"] = [date.decode("utf-8") for date in data["Datum"]]
+        data["Set_Kommentar"] = [
+            value.decode("utf-8") for value in data["Set_Kommentar"]
+        ]
+        data = pd.DataFrame(data).to_dict(orient="records")
 
         fig_line = px.line(
             data,
@@ -77,8 +94,12 @@ class NewSchemaPackage(PlotSection, Schema):
             y="p_Luft_bar_ein",
             title="Correlation between Datum and p_Luft_bar_ein",
         )
-        plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
+        if logger is not None:
+            logger.info(
+                "Experiment count in testbench:", parameter=configuration.parameter
+            )
 
+        plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
         self.figures.append(plotly_figure)
 
         filtered_data = [row for row in data if row["Set_Kommentar"] == "0,60V"]
@@ -100,7 +121,7 @@ class NewSchemaPackage(PlotSection, Schema):
             y="Set_aktuell",
             title="Correlation between Datum and Set_aktuell",
         )
-        # fig_scatter.show()
+
         self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         df_subset_grouped = df_subset.drop(
@@ -190,7 +211,7 @@ class NewSchemaPackage(PlotSection, Schema):
         )
         fig_go_scatter.update_xaxes(title="DateTime")
         fig_go_scatter.update_yaxes(title="Value")
-        # fig_go_scatter.show()
+        fig_go_scatter.show()
         self.figures.append(PlotlyFigure(figure=fig_go_scatter.to_plotly_json()))
 
 
