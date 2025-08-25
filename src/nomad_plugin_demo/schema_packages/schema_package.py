@@ -163,7 +163,7 @@ class NewSchemaPackage(PlotSection, Schema):
         fig_scatter.update_yaxes(title_text="Voltage / V", secondary_y=False)
         fig_scatter.update_yaxes(title_text="Current / A", secondary_y=True)
         # fig_scatter.show()
-        # self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
+        self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         column_dict = {col: col + "_avg" for col in df_averaged.columns}
         df_averaged.rename(columns=column_dict, inplace=True)
