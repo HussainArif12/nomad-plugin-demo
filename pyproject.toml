@@ -30,7 +30,7 @@ dependencies = [
 ]
 
 [project.urls]
-Repository = "https://github.com/ZBT-Tools/nomad_plugin_demo"
+Repository = "https://github.com/HussainArif12/nomad_plugin_demo"
 
 [project.optional-dependencies]
 dev = ["ruff", "pytest", "structlog"]
