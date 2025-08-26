@@ -11,10 +11,9 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.datamodel.data import Schema, ArchiveSection
+from nomad.datamodel.data import Schema
 from nomad.datamodel.metainfo.annotations import ELNAnnotation, ELNComponentEnum
-from nomad.metainfo import Quantity, SchemaPackage, Datetime, SubSection
-from nomad.metainfo.data_type import m_str
+from nomad.metainfo import Quantity, SchemaPackage, SubSection
 import numpy as np
 import pandas as pd
 import plotly.express as px
@@ -33,23 +32,16 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
-class Entry(MSection):
+class NewSchemaPackage(PlotSection, Schema):
     Datum = Quantity(type=HDF5Reference, shape=[], unit="dimensionless")
     Set_aktuell = Quantity(type=HDF5Reference, shape=[])
     p_Luft_bar_ein = Quantity(type=HDF5Reference, shape=[])
     Set_Kommentar = Quantity(type=HDF5Reference, shape=[])
     Strom_I___A = Quantity(type=HDF5Reference, shape=[])
     U1 = Quantity(type=HDF5Reference, shape=[])
-    # value = Quantity(type=HDF5Reference, shape=[])
-
-
-class NewSchemaPackage(PlotSection, Schema):
-    entries = SubSection(section=Entry, repeats=True)
     name = Quantity(
         type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
     )
-
-    message = Quantity(type=str)
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
         super().normalize(archive, logger)
@@ -57,8 +49,9 @@ class NewSchemaPackage(PlotSection, Schema):
         if logger is not None:
             logger.info("NewSchema.normalize", parameter=configuration.parameter)
 
-        data = archive.data.entries
+        archive_data = archive.data
         archive.metadata.entry_name = self.name
+
         set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
@@ -66,20 +59,23 @@ class NewSchemaPackage(PlotSection, Schema):
         # Dynamically extract all fields present in the first entry
         members = [
             attr
-            for attr in dir(archive.data.entries[0])
-            if not callable(getattr(archive.data.entries[0], attr))
-            and not attr.startswith("__")
+            for attr in dir(archive_data)
+            if not callable(getattr(archive_data, attr)) and not attr.startswith("__")
         ]
+
         data = {}
         for member in members:
             try:
                 data[member] = (
                     (
-                        HDF5Reference.read_dataset(archive, self.entries[0].get(member))
+                        HDF5Reference.read_dataset(archive, archive_data.get(member))
                     ).tolist(),
                 )[0]
             except:
                 pass
+
+        if not bool(data):
+            return
 
         data["Datum"] = [date.decode("utf-8") for date in data["Datum"]]
         data["Set_Kommentar"] = [
@@ -94,9 +90,12 @@ class NewSchemaPackage(PlotSection, Schema):
         )
         if logger is not None:
             logger.info(
-                "Experiment count in testbench:", parameter=configuration.parameter
+                f"Experiment count in testbench: {len(data)}",
+                parameter=configuration.parameter,
             )
 
+        print("Length of data", len(data))
+        # fig_line.show()
         plotly_figure = PlotlyFigure(figure=fig_line.to_plotly_json())
         self.figures.append(plotly_figure)
 
@@ -107,11 +106,11 @@ class NewSchemaPackage(PlotSection, Schema):
         df_subset = pd.DataFrame(filtered_data)
 
         set_change = df_subset[set_id_key].diff().fillna(0)
-        # # Change data types to integer
+        # Change data types to integer
         set_change = set_change.astype("int")
-        # # # Set all non-zero values to 1
+        # Set all non-zero values to 1
         set_change[set_change != 0] = 1
-        # # # Build the cumulative sum along the rows to count changing operating modes and add to data frame
+        # Build the cumulative sum along the rows to count changing operating modes and add to data frame
         df_subset["set_count"] = set_change.cumsum()
         fig_scatter = px.scatter(
             df_subset,
@@ -119,12 +118,13 @@ class NewSchemaPackage(PlotSection, Schema):
             y="Set_aktuell",
             title="Correlation between Datum and Set_aktuell",
         )
-
+        # fig_scatter.show()
         self.figures.append(PlotlyFigure(figure=fig_scatter.to_plotly_json()))
 
         df_subset_grouped = df_subset.drop(
             df_subset.columns.difference(["U1", "Strom_I___A", "set_count"]), axis=1
         )
+
         grouped_subset = df_subset_grouped.groupby(["set_count"])
         df_averaged = grouped_subset.tail(averaging_window)
         df_averaged = (
@@ -200,8 +200,7 @@ class NewSchemaPackage(PlotSection, Schema):
                     name=columns[i],
                 )
             )
-            # fig_2.add_trace(go.Scatter(x=x_values, y=data['U1_averaged'],
-            #                            mode='markers'))
+
         fig_go_scatter.update_layout(
             font_family="Arial",
             font_color="black",
