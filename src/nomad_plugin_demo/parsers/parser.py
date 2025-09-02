@@ -85,7 +85,7 @@ class NewParser(MatchingParser):
             f".volumes/fs/staging/{upload_id_first_chars}/{upload_id}/raw/{filename}"
         )
 
-        with archive.m_context.raw_file(hdf5_filename, "w") as newfile:
+        with archive.m_context.raw_file(filename, "w") as newfile:
             with h5py.File(newfile.name, "w") as hdf:
                 for _, dataframe in enumerate(dataframe):
                     group = hdf.create_group(dataframe)
