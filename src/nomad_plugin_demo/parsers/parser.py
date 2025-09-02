@@ -95,7 +95,7 @@ class NewParser(MatchingParser):
 
         for key in data_dict[0]:
             values = [item[key] for item in data_dict]
-            dataset_path = f"{filename}#{key}/value"
+            dataset_path = f"{filename}#/{key}/value"
             HDF5Reference.write_dataset(archive, values, dataset_path)
 
             try:

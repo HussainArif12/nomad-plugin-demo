@@ -62,17 +62,16 @@ class NewSchemaPackage(PlotSection, Schema):
             for attr in dir(archive_data)
             if not callable(getattr(archive_data, attr)) and not attr.startswith("__")
         ]
-
         data = {}
-        # for member in members:
-        #     try:
-        #         data[member] = (
-        #             (
-        #                 HDF5Reference.read_dataset(archive, archive_data.get(member))
-        #             ).tolist(),
-        #         )[0]
-        #     except:
-        #         pass
+        for member in members:
+            try:
+                data[member] = (
+                    (
+                        HDF5Reference.read_dataset(archive, archive_data.get(member))
+                    ).tolist(),
+                )[0]
+            except:
+                pass
 
         if not bool(data):
             return
