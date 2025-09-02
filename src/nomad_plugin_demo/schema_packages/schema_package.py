@@ -64,15 +64,15 @@ class NewSchemaPackage(PlotSection, Schema):
         ]
 
         data = {}
-        for member in members:
-            try:
-                data[member] = (
-                    (
-                        HDF5Reference.read_dataset(archive, archive_data.get(member))
-                    ).tolist(),
-                )[0]
-            except:
-                pass
+        # for member in members:
+        #     try:
+        #         data[member] = (
+        #             (
+        #                 HDF5Reference.read_dataset(archive, archive_data.get(member))
+        #             ).tolist(),
+        #         )[0]
+        #     except:
+        #         pass
 
         if not bool(data):
             return

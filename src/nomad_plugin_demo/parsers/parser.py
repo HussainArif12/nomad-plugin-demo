@@ -84,8 +84,14 @@ class NewParser(MatchingParser):
         hdf5_filename = (
             f".volumes/fs/staging/{upload_id_first_chars}/{upload_id}/raw/{filename}"
         )
-        with h5py.File(hdf5_filename, "w") as h5file:
-            pass
+
+        with archive.m_context.raw_file(hdf5_filename, "w") as newfile:
+            with h5py.File(newfile.name, "w") as hdf:
+                for _, dataframe in enumerate(dataframe):
+                    group = hdf.create_group(dataframe)
+                    group.attrs["signal"] = "value"
+                    group.attrs["axes"] = "time"
+                    group.attrs["NX_class"] = "NXdata"
 
         for key in data_dict[0]:
             values = [item[key] for item in data_dict]
@@ -96,3 +102,10 @@ class NewParser(MatchingParser):
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
+
+        # with h5py.File(hdf5_filename, "r") as f:
+        #     alist = []
+        #     ls = list(f.keys())
+        #     for key in ls:
+        #         group = f.get(key)
+        #         print(group["value"][()])
