@@ -74,6 +74,7 @@ class NewSchemaPackage(PlotSection, Schema):
                 pass
 
         if not bool(data):
+            logger.info("Data does not exist!", parameter=configuration.parameter)
             return
 
         data["Datum"] = [date.decode("utf-8") for date in data["Datum"]]
