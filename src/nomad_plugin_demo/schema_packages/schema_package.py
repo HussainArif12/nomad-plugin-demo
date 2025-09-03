@@ -55,7 +55,6 @@ class NewSchemaPackage(PlotSection, Schema):
         set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
-
         # Dynamically extract all fields present in the first entry
         members = [
             attr
