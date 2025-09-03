@@ -47,11 +47,22 @@ class NewParser(MatchingParser):
         datetime_format = "%d.%m.%y %H:%M:%S"
         dataframe = pd.read_csv(mainfile, sep="\t", decimal=",")
 
+        allowed_keys = [
+            "Datum",
+            "Set_aktuell",
+            "p_Luft_bar_ein",
+            "Set_Kommentar",
+            "Strom_I___A",
+            "U1",
+        ]
+
+        dataframe = clean_dataframe_columns(dataframe)
+        # remove all columns that were unneeded
+        dataframe = dataframe[allowed_keys]
+
         dataframe["Datum"] = pd.to_datetime(
             dataframe["Datum"], format=datetime_format
         ).dt.strftime(datetime_format)
-
-        dataframe = clean_dataframe_columns(dataframe)
 
         upload_id = str(uuid.uuid4())
         upload_id_first_chars = upload_id[:2]
@@ -85,15 +96,21 @@ class NewParser(MatchingParser):
             f".volumes/fs/staging/{upload_id_first_chars}/{upload_id}/raw/{filename}"
         )
 
-        with archive.m_context.raw_file(filename, "w") as newfile:
-            with h5py.File(newfile.name, "w") as hdf:
-                for key in data_dict[0]:
-                    values = [item[key] for item in data_dict]
+        with h5py.File(hdf5_filename, "w"):
+            pass
 
+        # now write to file. This is only for displaying data in the hdf5 viewer
+        with archive.m_context.raw_file(filename, "w") as newfile:
+
+            with h5py.File(newfile.name, "w") as hdf:
+                for key in allowed_keys:
+
+                    values = [item[key] for item in data_dict]
                     group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
 
-        for key in data_dict[0]:
+        # finally, set data in archive
+        for key in allowed_keys:
             values = [item[key] for item in data_dict]
             dataset_path = f"{filename}#/{key}/value"
 
