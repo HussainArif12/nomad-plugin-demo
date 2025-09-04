@@ -79,7 +79,7 @@ class NewParser(MatchingParser):
 
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
-        upload_files = StagingUploadFiles(upload_id=upload_id, create=True)
+        StagingUploadFiles(upload_id=upload_id, create=True)
 
         archive.data.value = filename
 

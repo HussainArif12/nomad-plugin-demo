@@ -13,16 +13,13 @@ if TYPE_CHECKING:
 from nomad.config import config
 from nomad.datamodel.data import Schema
 from nomad.datamodel.metainfo.annotations import ELNAnnotation, ELNComponentEnum
-from nomad.metainfo import Quantity, SchemaPackage, SubSection
-import numpy as np
+from nomad.metainfo import Quantity, SchemaPackage
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from nomad.datamodel.metainfo.plot import PlotlyFigure, PlotSection
-from nomad.metainfo import MEnum, MSection, Quantity, SchemaPackage, SubSection
 from nomad.datamodel.hdf5 import HDF5Reference
-from nomad.units import ureg
 
 
 configuration = config.get_plugin_entry_point(
@@ -33,6 +30,7 @@ m_package = SchemaPackage()
 
 
 class NewSchemaPackage(PlotSection, Schema):
+
     Datum = Quantity(type=HDF5Reference, shape=[], unit="dimensionless")
     Set_aktuell = Quantity(type=HDF5Reference, shape=[])
     p_Luft_bar_ein = Quantity(type=HDF5Reference, shape=[])
@@ -55,13 +53,16 @@ class NewSchemaPackage(PlotSection, Schema):
         set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
+
         # Dynamically extract all fields present in the first entry
         members = [
             attr
             for attr in dir(archive_data)
             if not callable(getattr(archive_data, attr)) and not attr.startswith("__")
         ]
+
         data = {}
+
         for member in members:
             try:
                 data[member] = (
