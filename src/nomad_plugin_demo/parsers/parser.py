@@ -108,7 +108,7 @@ class NewParser(MatchingParser):
                     values = [item[key] for item in data_dict]
                     group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
-
+                    group.attrs["signal"] = "value"
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
@@ -120,6 +120,7 @@ class NewParser(MatchingParser):
             except:
                 pass
 
+        archive.data.hdf5_filename = filename
         # with h5py.File(hdf5_filename, "r") as f:
         #     alist = []
         #     ls = list(f.keys())
