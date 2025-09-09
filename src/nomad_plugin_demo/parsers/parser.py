@@ -110,6 +110,8 @@ class NewParser(MatchingParser):
         # now write to file. This is only for displaying data in the hdf5 viewer
         with archive.m_context.raw_file(filename, "w") as newfile:
 
+            archive.data.hdf5_filename = newfile.name
+
             with h5py.File(newfile.name, "w") as hdf:
                 for key in allowed_keys:
 
@@ -118,8 +120,7 @@ class NewParser(MatchingParser):
                     group.create_dataset("value", data=values)
 
                     group.attrs["signal"] = "value"
-                    
-        archive.data.hdf5_filename = filename
+
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
