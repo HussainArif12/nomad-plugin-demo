@@ -109,6 +109,7 @@ class NewParser(MatchingParser):
                     group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
                     group.attrs["signal"] = "value"
+
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
