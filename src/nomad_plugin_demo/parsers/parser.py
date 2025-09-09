@@ -24,6 +24,7 @@ from nomad.datamodel.hdf5 import HDF5Reference
 from nomad.files import StagingUploadFiles
 import uuid
 import h5py
+import numpy as np
 
 configuration = config.get_plugin_entry_point(
     "nomad_plugin_demo.parsers:parser_entry_point"
@@ -75,21 +76,15 @@ class NewParser(MatchingParser):
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
-        child_archive = EntryArchive()
         archive.data.name = os.path.basename(mainfile)
 
         data_dict = dataframe[dataframe.columns].to_dict(orient="records")
 
         filename = f"{Path(mainfile).stem}.h5"
 
-        child_archive.data = NewSchemaPackage()
-        child_archive.data.hdf5_file = filename
-
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
         StagingUploadFiles(upload_id=upload_id, create=True)
-
-        archive.data.value = filename
 
         # hack: create empty hdf5 file first
         # the problem is, initially the HDF5Reference library tries to open the file in read mode
@@ -124,7 +119,7 @@ class NewParser(MatchingParser):
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
-            dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}/value"
+            dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}"
 
             HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
