@@ -31,12 +31,12 @@ m_package = SchemaPackage()
 
 class NewSchemaPackage(PlotSection, Schema):
 
-    Datum = Quantity(type=HDF5Reference, shape=[], unit="dimensionless")
-    Set_aktuell = Quantity(type=HDF5Reference, shape=[])
-    p_Luft_bar_ein = Quantity(type=HDF5Reference, shape=[])
-    Set_Kommentar = Quantity(type=HDF5Reference, shape=[])
-    Strom_I___A = Quantity(type=HDF5Reference, shape=[])
-    U1 = Quantity(type=HDF5Reference, shape=[])
+    Datum = Quantity(type=HDF5Reference)
+    Set_aktuell = Quantity(type=HDF5Reference)
+    p_Luft_bar_ein = Quantity(type=HDF5Reference)
+    Set_Kommentar = Quantity(type=HDF5Reference)
+    Strom_I___A = Quantity(type=HDF5Reference)
+    U1 = Quantity(type=HDF5Reference)
     name = Quantity(
         type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
     )
@@ -44,7 +44,7 @@ class NewSchemaPackage(PlotSection, Schema):
         type=str,
         description="The HDF5 file containing the data for this growth process.",
         a_browser={"adaptor": "RawFileAdaptor"},
-        # a_eln={'component': 'FileEditQuantity'},
+        a_eln={"component": "FileEditQuantity"},
     )
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:

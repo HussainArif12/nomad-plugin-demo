@@ -118,7 +118,7 @@ class NewParser(MatchingParser):
                     group.create_dataset("value", data=values)
                     group.attrs["signal"] = "value"
 
-        archive.data.hdf5_filename = filename
+        archive.data.hdf5_filename = hdf5_filename
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
