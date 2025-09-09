@@ -36,15 +36,14 @@ class NewSchemaPackage(PlotSection, Schema):
     p_Luft_bar_ein = Quantity(type=HDF5Reference)
     Set_Kommentar = Quantity(type=HDF5Reference)
     Strom_I___A = Quantity(type=HDF5Reference)
-    U1 = Quantity(type=HDF5Reference)
+    U1 = Quantity(type=HDF5Reference, shape=[])
     name = Quantity(
         type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
     )
     hdf5_filename = Quantity(
         type=str,
-        description="The HDF5 file containing the data for this growth process.",
+        description="The HDF5 file along with the data.",
         a_browser={"adaptor": "RawFileAdaptor"},
-        a_eln={"component": "FileEditQuantity"},
     )
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
@@ -78,7 +77,7 @@ class NewSchemaPackage(PlotSection, Schema):
                 )[0]
             except:
                 pass
-
+        self.U1 = archive_data.U1
         if not bool(data):
             logger.info("Data does not exist!", parameter=configuration.parameter)
             return
