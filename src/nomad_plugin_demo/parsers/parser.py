@@ -4,6 +4,10 @@ from typing import (
 from nomad_plugin_demo.schema_packages.schema_package import NewSchemaPackage
 import pandas as pd
 
+from nomad.datamodel.datamodel import (
+    EntryArchive,
+)
+
 if TYPE_CHECKING:
     from nomad.datamodel.datamodel import (
         EntryArchive,
@@ -71,11 +75,15 @@ class NewParser(MatchingParser):
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
+        child_archive = EntryArchive()
         archive.data.name = os.path.basename(mainfile)
 
         data_dict = dataframe[dataframe.columns].to_dict(orient="records")
 
         filename = f"{Path(mainfile).stem}.h5"
+
+        child_archive.data = NewSchemaPackage()
+        child_archive.data.hdf5_file = filename
 
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
@@ -110,6 +118,7 @@ class NewParser(MatchingParser):
                     group.create_dataset("value", data=values)
                     group.attrs["signal"] = "value"
 
+        archive.data.hdf5_filename = filename
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
@@ -121,7 +130,6 @@ class NewParser(MatchingParser):
             except:
                 pass
 
-        archive.data.hdf5_filename = filename
         # with h5py.File(hdf5_filename, "r") as f:
         #     alist = []
         #     ls = list(f.keys())

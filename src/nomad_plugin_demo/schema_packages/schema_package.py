@@ -40,6 +40,12 @@ class NewSchemaPackage(PlotSection, Schema):
     name = Quantity(
         type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
     )
+    hdf5_filename = Quantity(
+        type=str,
+        description="The HDF5 file containing the data for this growth process.",
+        a_browser={"adaptor": "RawFileAdaptor"},
+        # a_eln={'component': 'FileEditQuantity'},
+    )
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
         super().normalize(archive, logger)
