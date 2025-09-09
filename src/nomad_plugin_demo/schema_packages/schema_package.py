@@ -12,15 +12,18 @@ if TYPE_CHECKING:
 
 from nomad.config import config
 from nomad.datamodel.data import Schema
-from nomad.datamodel.metainfo.annotations import ELNAnnotation, ELNComponentEnum
-from nomad.metainfo import Quantity, SchemaPackage
+from nomad.datamodel.metainfo.annotations import (
+    ELNAnnotation,
+    ELNComponentEnum,
+    H5WebAnnotation,
+)
+from nomad.metainfo import Quantity, SchemaPackage, Section
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from nomad.datamodel.metainfo.plot import PlotlyFigure, PlotSection
-from nomad.datamodel.hdf5 import HDF5Reference
-
+from nomad.datamodel.hdf5 import HDF5Reference, HDF5Dataset, H5WebAnnotation
 
 configuration = config.get_plugin_entry_point(
     "nomad_plugin_demo.schema_packages:schema_package_entry_point"
@@ -31,19 +34,15 @@ m_package = SchemaPackage()
 
 class NewSchemaPackage(PlotSection, Schema):
 
+    m_def = Section(a_h5web=H5WebAnnotation(axes="x", signal="value"))
     Datum = Quantity(type=HDF5Reference)
     Set_aktuell = Quantity(type=HDF5Reference)
     p_Luft_bar_ein = Quantity(type=HDF5Reference)
     Set_Kommentar = Quantity(type=HDF5Reference)
-    Strom_I___A = Quantity(type=HDF5Reference)
+    Strom_I___A = Quantity(type=HDF5Reference, shape=[])
     U1 = Quantity(type=HDF5Reference, shape=[])
     name = Quantity(
         type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
-    )
-    hdf5_filename = Quantity(
-        type=str,
-        description="The HDF5 file along with the data.",
-        a_browser={"adaptor": "RawFileAdaptor"},
     )
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
@@ -77,7 +76,8 @@ class NewSchemaPackage(PlotSection, Schema):
                 )[0]
             except:
                 pass
-        self.U1 = archive_data.U1
+
+        print()
         if not bool(data):
             logger.info("Data does not exist!", parameter=configuration.parameter)
             return
