@@ -72,7 +72,7 @@ class NewParser(MatchingParser):
         upload_id = str(uuid.uuid4())
         upload_id_first_chars = upload_id[:2]
 
-        archive.metadata.upload_id = upload_id
+        archive.metadata.upload_id = "test_upload"
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
@@ -112,16 +112,17 @@ class NewParser(MatchingParser):
 
                     values = [item[key] for item in data_dict]
                     group = hdf.create_group(key)
-                    group.create_dataset("value", data=values)
+                    value = group.create_dataset("value", data=values)
 
                     group.attrs["signal"] = "value"
 
+        print(archive.m_context.upload_id)
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
-            dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}"
+            dataset_path = f"{filename}#/{key}"
 
-            # HDF5Reference.write_dataset(archive, values, dataset_path)
+            HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
                 setattr(archive.data, key, dataset_path)
             except:

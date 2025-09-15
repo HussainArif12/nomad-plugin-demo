@@ -53,7 +53,6 @@ class NewSchemaPackage(PlotSection, Schema):
 
         archive_data = archive.data
         archive.metadata.entry_name = self.name
-
         set_id_key = "Set_aktuell"
         datetime_key = "Datum"
         averaging_window = 30
