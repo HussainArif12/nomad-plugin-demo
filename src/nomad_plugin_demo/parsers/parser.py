@@ -69,10 +69,11 @@ class NewParser(MatchingParser):
             dataframe["Datum"], format=datetime_format
         ).dt.strftime(datetime_format)
 
-        upload_id = str(uuid.uuid4())
+        # upload_id = str(uuid.uuid4())
+        upload_id = "test_upload"
         upload_id_first_chars = upload_id[:2]
 
-        archive.metadata.upload_id = "test_upload"
+        archive.metadata.upload_id = upload_id
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
