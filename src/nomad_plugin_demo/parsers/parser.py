@@ -119,9 +119,9 @@ class NewParser(MatchingParser):
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
-            dataset_path = f"/uploads/{upload_id}/raw/{filename}#{key}"
+            dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}"
 
-            HDF5Reference.write_dataset(archive, values, dataset_path)
+            # HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
                 setattr(archive.data, key, dataset_path)
             except:
