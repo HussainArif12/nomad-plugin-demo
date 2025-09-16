@@ -24,6 +24,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 from nomad.datamodel.metainfo.plot import PlotlyFigure, PlotSection
 from nomad.datamodel.hdf5 import HDF5Reference, HDF5Dataset, H5WebAnnotation
+from nomad.datamodel import ArchiveSection
 
 configuration = config.get_plugin_entry_point(
     "nomad_plugin_demo.schema_packages:schema_package_entry_point"
@@ -32,7 +33,7 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
-class NewSchemaPackage(PlotSection, Schema):
+class NewSchemaPackage(PlotSection, Schema, ArchiveSection):
 
     m_def = Section(a_h5web=H5WebAnnotation(axes="x", signal="value"))
     Datum = Quantity(type=HDF5Reference)
@@ -41,12 +42,14 @@ class NewSchemaPackage(PlotSection, Schema):
     Set_Kommentar = Quantity(type=HDF5Reference)
     Strom_I___A = Quantity(type=HDF5Reference, shape=[])
     U1 = Quantity(type=HDF5Reference, shape=[])
-    name = Quantity(
+    data_file = Quantity(
         type=str,
         description=".dat file containing all measurements",
         a_browser={"adaptor": "RawFileAdaptor"},
         # a_eln={'component': 'FileEditQuantity'},
     )
+
+    normal_data = Quantity(type=HDF5Dataset, shape=[])
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
         super().normalize(archive, logger)
