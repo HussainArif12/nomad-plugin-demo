@@ -1,3 +1,4 @@
+from time import sleep
 from typing import (
     TYPE_CHECKING,
 )
@@ -69,8 +70,8 @@ class NewParser(MatchingParser):
             dataframe["Datum"], format=datetime_format
         ).dt.strftime(datetime_format)
 
-        # upload_id = str(uuid.uuid4())
-        upload_id = "test_upload"
+        upload_id = str(uuid.uuid4())
+        # upload_id = "test_upload"
         upload_id_first_chars = upload_id[:2]
 
         archive.metadata.upload_id = upload_id
@@ -106,32 +107,37 @@ class NewParser(MatchingParser):
         # now write to file. This is only for displaying data in the hdf5 viewer
         with archive.m_context.raw_file(filename, "w") as newfile:
 
-            archive.data.hdf5_filename = newfile.name
-
             with h5py.File(newfile.name, "w") as hdf:
                 for key in allowed_keys:
 
                     values = [item[key] for item in data_dict]
                     group = hdf.create_group(key)
-                    value = group.create_dataset("value", data=values)
+                    group.create_dataset("value", data=values)
 
                     group.attrs["signal"] = "value"
 
-        print(archive.m_context.upload_id)
         # finally, set data in archive
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
-            dataset_path = f"{filename}#/{key}"
+            dataset_path = f"{filename}#/{key}/value"
 
             HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
+                dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}/value"
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
 
+        # print(
+        #     "Value ",
+        #     HDF5Reference.read_dataset(
+        #         archive, f"/uploads/{upload_id}/raw/{filename}#/Strom_I___A/value"
+        #     ),
+        # )
+
         # with h5py.File(hdf5_filename, "r") as f:
-        #     alist = []
         #     ls = list(f.keys())
+        #     print(ls)
         #     for key in ls:
         #         group = f.get(key)
         #         print(group["value"][()])

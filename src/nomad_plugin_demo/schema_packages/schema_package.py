@@ -42,7 +42,10 @@ class NewSchemaPackage(PlotSection, Schema):
     Strom_I___A = Quantity(type=HDF5Reference, shape=[])
     U1 = Quantity(type=HDF5Reference, shape=[])
     name = Quantity(
-        type=str, a_eln=ELNAnnotation(component=ELNComponentEnum.StringEditQuantity)
+        type=str,
+        description=".dat file containing all measurements",
+        a_browser={"adaptor": "RawFileAdaptor"},
+        # a_eln={'component': 'FileEditQuantity'},
     )
 
     def normalize(self, archive: "EntryArchive", logger: "BoundLogger") -> None:
