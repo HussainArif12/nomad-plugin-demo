@@ -11,7 +11,7 @@ if TYPE_CHECKING:
     )
 
 from nomad.config import config
-from nomad.datamodel.data import Schema
+from nomad.datamodel.data import Schema, EntryData
 from nomad.datamodel.metainfo.annotations import (
     ELNAnnotation,
     ELNComponentEnum,
@@ -33,7 +33,7 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
-class Entries(ArchiveSection):
+class Entries(EntryData, ArchiveSection):
     data_value = Quantity(
         type=HDF5Reference,
         shape=[],
