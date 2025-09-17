@@ -2,7 +2,7 @@ from time import sleep
 from typing import (
     TYPE_CHECKING,
 )
-from nomad_plugin_demo.schema_packages.schema_package import NewSchemaPackage
+from nomad_plugin_demo.schema_packages.schema_package import NewSchemaPackage, Entries
 import pandas as pd
 
 from nomad.datamodel.datamodel import (
@@ -111,7 +111,7 @@ class NewParser(MatchingParser):
                 for key in allowed_keys:
 
                     values = [item[key] for item in data_dict]
-                    group = hdf.create_group(f"#{key}")
+                    group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
 
                     group.attrs["signal"] = "value"
@@ -127,6 +127,9 @@ class NewParser(MatchingParser):
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
+
+            archive.data.value = Entries()
+            archive.data.value.data_value = archive.data.U1
 
         # with h5py.File(hdf5_filename, "r") as f:
         #     ls = list(f.keys())

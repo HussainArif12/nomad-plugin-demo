@@ -17,7 +17,7 @@ from nomad.datamodel.metainfo.annotations import (
     ELNComponentEnum,
     H5WebAnnotation,
 )
-from nomad.metainfo import Quantity, SchemaPackage, Section
+from nomad.metainfo import Quantity, SchemaPackage, Section, SubSection
 import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
@@ -33,15 +33,26 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
+class Entries(ArchiveSection):
+    data_value = Quantity(
+        type=HDF5Reference,
+        shape=[],
+    )
+
+
 class NewSchemaPackage(PlotSection, Schema, ArchiveSection):
 
     m_def = Section(a_h5web=H5WebAnnotation(axes="x", signal="value"))
+    value = SubSection(
+        section_def=Entries,
+    )
     Datum = Quantity(type=HDF5Reference)
     Set_aktuell = Quantity(type=HDF5Reference)
     p_Luft_bar_ein = Quantity(type=HDF5Reference)
     Set_Kommentar = Quantity(type=HDF5Reference)
     Strom_I___A = Quantity(type=HDF5Reference, shape=[])
     U1 = Quantity(type=HDF5Reference, shape=[])
+
     data_file = Quantity(
         type=str,
         description=".dat file containing all measurements",
