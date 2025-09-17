@@ -128,12 +128,13 @@ class NewParser(MatchingParser):
             except:
                 pass
 
-            archive.data.value = Entries()
-            archive.data.value.data_value = archive.data.U1
+        archive.data.value = Entries()
+        archive.data.value.data_value = archive.data.U1
+        print("value ", archive.data.value.data_value)
 
-        # with h5py.File(hdf5_filename, "r") as f:
-        #     ls = list(f.keys())
-        #     print(ls)
-        #     for key in ls:
-        #         group = f.get(key)
-        #         print(group["value"][()])
+    # with h5py.File(hdf5_filename, "r") as f:
+    #     ls = list(f.keys())
+    #     print(ls)
+    #     for key in ls:
+    #         group = f.get(key)
+    #         print(group["value"][()])
