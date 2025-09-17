@@ -131,6 +131,10 @@ class NewParser(MatchingParser):
         archive.data.value = Entries()
         archive.data.value.data_value = archive.data.U1
         print("value ", archive.data.value.data_value)
+        print(
+            "Value as array ",
+            HDF5Reference.read_dataset(archive, archive.data.value.data_value),
+        )
 
     # with h5py.File(hdf5_filename, "r") as f:
     #     ls = list(f.keys())
