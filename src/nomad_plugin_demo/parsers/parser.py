@@ -169,6 +169,7 @@ class NewParser(MatchingParser):
 
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
+        contx = archive.m_context.upload_id
         StagingUploadFiles(upload_id=upload_id, create=True)
 
         # hack: create empty hdf5 file first
@@ -196,6 +197,7 @@ class NewParser(MatchingParser):
         child_archives.data = Entries()
 
         contx = archive.m_context.upload_id
+        print("contx value ", contx)
         logger.info("cotx value ", contx)
         my_name = "demo"
         # now write to file. This is only for displaying data in the hdf5 viewer
@@ -219,7 +221,7 @@ class NewParser(MatchingParser):
 
         # finally, set data in archive
         child_archives.data.data_value = (
-            f"/uploads/{upload_id}/raw/{filename}#/{group_name}/value"
+            f"/uploads/{contx}/raw/{filename}#/{group_name}/value"
         )
         try:
             HDF5Reference.read_dataset(archive, child_archives.data.data_value)
