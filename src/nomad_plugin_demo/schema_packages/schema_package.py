@@ -45,6 +45,7 @@ class NewSchemaPackage(PlotSection, Schema, ArchiveSection):
     m_def = Section(a_h5web=H5WebAnnotation(axes="x", signal="value"))
     value = SubSection(
         section_def=Entries,
+        repeats=True,
     )
     Datum = Quantity(type=HDF5Reference)
     Set_aktuell = Quantity(type=HDF5Reference)
