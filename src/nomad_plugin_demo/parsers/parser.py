@@ -207,11 +207,6 @@ class NewParser(MatchingParser):
                     group.attrs["signal"] = "value"
                     group.attrs["NX_class"] = "NXdata"
 
-        try:
-            HDF5Reference.read_dataset(archive, child_archives.data.data_value)
-        except:
-            logger.info("Dataset coud not be found! ", child_archives.data.data_value)
-
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
 
