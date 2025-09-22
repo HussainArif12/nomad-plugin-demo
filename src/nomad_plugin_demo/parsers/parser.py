@@ -169,7 +169,9 @@ class NewParser(MatchingParser):
 
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
-        contx = archive.m_context.upload_id
+        upload_id = contx = archive.m_context.upload_id
+        upload_id_first_chars = upload_id[:2]
+
         StagingUploadFiles(upload_id=upload_id, create=True)
 
         # hack: create empty hdf5 file first
@@ -215,10 +217,12 @@ class NewParser(MatchingParser):
                 for key in allowed_keys:
 
                     values = [item[key] for item in data_dict]
+
                     group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
 
                     group.attrs["signal"] = "value"
+                    group.attrs["NX_class"] = "NXdata"
 
         # finally, set data in archive
         child_archives.data.data_value = (
@@ -235,7 +239,7 @@ class NewParser(MatchingParser):
 
             HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
-                dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}/value"
+                dataset_path = f"/uploads/{contx}/raw/{filename}#/{key}/value"
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
@@ -253,7 +257,7 @@ class NewParser(MatchingParser):
             logger,
         )
 
-        archive.data = Entries()
+        # archive.data = Entries()
 
     # with h5py.File(hdf5_filename, "r") as f:
     #     ls = list(f.keys())
