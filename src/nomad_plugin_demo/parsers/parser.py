@@ -188,26 +188,14 @@ class NewParser(MatchingParser):
         with h5py.File(hdf5_filename, "w"):
             pass
 
-        child_archives = EntryArchive()
-        child_archives.data = Entries()
-
         # when using 'nomad parse' this returns None but when used as a plugin in Nomad OASIS, it has a value!
         # contx = archive.m_context.upload_id
         print("contx value ", upload_id)
         logger.info("cotx value ", upload_id)
 
-        my_name = "demo"
         # now write to file. This is only for displaying data in the hdf5 viewer
         with archive.m_context.raw_file(filename, "w") as newfile:
             with h5py.File(newfile.name, "w") as hdf:
-                group_name = f"my_group_{my_name}"
-                group = hdf.create_group(group_name)
-                group.create_dataset("value", data=[1, 2, 3])
-                group.create_dataset("time", data=[4, 5, 6])
-                group.attrs["signal"] = "value"
-                group.attrs["axes"] = "time"
-                group.attrs["NX_class"] = "NXdata"
-
                 for key in allowed_keys:
 
                     values = [item[key] for item in data_dict]
@@ -219,10 +207,6 @@ class NewParser(MatchingParser):
                     group.attrs["signal"] = "value"
                     group.attrs["NX_class"] = "NXdata"
 
-        # finally, set data in archive
-        child_archives.data.data_value = (
-            f"/uploads/{upload_id}/raw/{filename}#/{group_name}/value"
-        )
         try:
             HDF5Reference.read_dataset(archive, child_archives.data.data_value)
         except:
@@ -236,10 +220,6 @@ class NewParser(MatchingParser):
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
-
-        sample_value = Entries()
-        sample_value.data_value = archive.data.U1
-        archive.data.value.append(sample_value)
 
         # example_filename = f"{my_name}_testHDF5.archive.yaml"
 

@@ -33,20 +33,9 @@ configuration = config.get_plugin_entry_point(
 m_package = SchemaPackage()
 
 
-class Entries(EntryData, ArchiveSection):
-    data_value = Quantity(
-        type=HDF5Reference,
-        shape=[],
-    )
-
-
 class NewSchemaPackage(PlotSection, Schema, ArchiveSection):
 
     m_def = Section(a_h5web=H5WebAnnotation(axes="x", signal="value"))
-    value = SubSection(
-        section_def=Entries,
-        repeats=True,
-    )
     Datum = Quantity(type=HDF5Reference)
     Set_aktuell = Quantity(type=HDF5Reference)
     p_Luft_bar_ein = Quantity(type=HDF5Reference)
