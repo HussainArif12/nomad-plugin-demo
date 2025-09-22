@@ -153,11 +153,9 @@ class NewParser(MatchingParser):
             dataframe["Datum"], format=datetime_format
         ).dt.strftime(datetime_format)
 
-        upload_id = str(uuid.uuid4())
-        # upload_id = "test_upload"
+        upload_id = contx = archive.m_context.upload_id
         upload_id_first_chars = upload_id[:2]
-
-        archive.metadata.upload_id = upload_id
+        archive.metadata.upload_id = archive.m_context.upload_id  # upload_id
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
@@ -169,8 +167,6 @@ class NewParser(MatchingParser):
 
         # even though this variable is not used, the line is necessary
         # to create the correct directory structure
-        upload_id = contx = archive.m_context.upload_id
-        upload_id_first_chars = upload_id[:2]
 
         StagingUploadFiles(upload_id=upload_id, create=True)
 
@@ -190,19 +186,17 @@ class NewParser(MatchingParser):
         with h5py.File(hdf5_filename, "w"):
             pass
 
-        child_archives = {
-            "experiment": EntryArchive(),
-            "instrument": EntryArchive(),
-            "process": EntryArchive(),
-        }
-        child_archives = child_archives["experiment"]
+        child_archives = EntryArchive()
         child_archives.data = Entries()
         # TODO, replace all instances of 'upload_id' with contx and test!!!!
         # when using 'nomad parse' this returns None but when used as a plugin in Nomad OASIS, it has a value!
-        contx = archive.m_context.upload_id
+        # contx = archive.m_context.upload_id
         print("contx value ", contx)
         logger.info("cotx value ", contx)
+
         my_name = "demo"
+        num_array_length = list(len(data_dict))
+
         # now write to file. This is only for displaying data in the hdf5 viewer
         with archive.m_context.raw_file(filename, "w") as newfile:
             with h5py.File(newfile.name, "w") as hdf:
@@ -220,7 +214,8 @@ class NewParser(MatchingParser):
 
                     group = hdf.create_group(key)
                     group.create_dataset("value", data=values)
-
+                    group.create_dataset("time", data=num_array_length)
+                    group.attrs["axes"] = "time"
                     group.attrs["signal"] = "value"
                     group.attrs["NX_class"] = "NXdata"
 
@@ -235,27 +230,26 @@ class NewParser(MatchingParser):
 
         for key in allowed_keys:
             values = [item[key] for item in data_dict]
-            dataset_path = f"{filename}#/{key}/value"
 
-            # HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
                 dataset_path = f"/uploads/{contx}/raw/{filename}#/{key}/value"
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
 
-        archive.data.value = Entries()
-        archive.data.value.data_value = archive.data.U1
+        sample_value = Entries()
+        sample_value.data_value = archive.data.U1
+        archive.data.value.append(sample_value)
 
-        example_filename = f"{my_name}_testHDF5.archive.yaml"
+        # example_filename = f"{my_name}_testHDF5.archive.yaml"
 
-        create_archive(
-            child_archives.m_to_dict(),
-            archive.m_context,
-            example_filename,
-            "yaml",
-            logger,
-        )
+        # create_archive(
+        #     child_archives.m_to_dict(),
+        #     archive.m_context,
+        #     example_filename,
+        #     "yaml",
+        #     logger,
+        # )
 
         # archive.data = Entries()
 
