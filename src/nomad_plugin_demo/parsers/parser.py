@@ -2,7 +2,7 @@ from time import sleep
 from typing import (
     TYPE_CHECKING,
 )
-from nomad_plugin_demo.schema_packages.schema_package import NewSchemaPackage, Entries
+from nomad_plugin_demo.schema_packages.schema_package import NewSchemaPackage
 import pandas as pd
 
 from nomad.datamodel.datamodel import (
