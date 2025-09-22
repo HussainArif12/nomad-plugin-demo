@@ -195,7 +195,8 @@ class NewParser(MatchingParser):
         }
         child_archives = child_archives["experiment"]
         child_archives.data = Entries()
-
+        # TODO, replace all instances of 'upload_id' with contx and test!!!!
+        # when using 'nomad parse' this returns None but when used as a plugin in Nomad OASIS, it has a value!
         contx = archive.m_context.upload_id
         print("contx value ", contx)
         logger.info("cotx value ", contx)
