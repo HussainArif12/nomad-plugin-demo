@@ -237,7 +237,7 @@ class NewParser(MatchingParser):
             values = [item[key] for item in data_dict]
             dataset_path = f"{filename}#/{key}/value"
 
-            HDF5Reference.write_dataset(archive, values, dataset_path)
+            # HDF5Reference.write_dataset(archive, values, dataset_path)
             try:
                 dataset_path = f"/uploads/{contx}/raw/{filename}#/{key}/value"
                 setattr(archive.data, key, dataset_path)
