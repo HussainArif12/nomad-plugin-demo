@@ -153,15 +153,17 @@ class NewParser(MatchingParser):
             dataframe["Datum"], format=datetime_format
         ).dt.strftime(datetime_format)
 
-        upload_id = contx = archive.m_context.upload_id
+        data_dict = dataframe[dataframe.columns].to_dict(orient="records")
+
+        num_array_length = list(range(len(data_dict)))
+
+        upload_id = archive.m_context.upload_id
         upload_id_first_chars = upload_id[:2]
         archive.metadata.upload_id = archive.m_context.upload_id  # upload_id
         archive.metadata.entry_id = "h5_dataset"
         archive.data = NewSchemaPackage()
 
         archive.data.name = os.path.basename(mainfile)
-
-        data_dict = dataframe[dataframe.columns].to_dict(orient="records")
 
         filename = f"{Path(mainfile).stem}.h5"
 
@@ -188,15 +190,13 @@ class NewParser(MatchingParser):
 
         child_archives = EntryArchive()
         child_archives.data = Entries()
-        # TODO, replace all instances of 'upload_id' with contx and test!!!!
+
         # when using 'nomad parse' this returns None but when used as a plugin in Nomad OASIS, it has a value!
         # contx = archive.m_context.upload_id
-        print("contx value ", contx)
-        logger.info("cotx value ", contx)
+        print("contx value ", upload_id)
+        logger.info("cotx value ", upload_id)
 
         my_name = "demo"
-        num_array_length = list(len(data_dict))
-
         # now write to file. This is only for displaying data in the hdf5 viewer
         with archive.m_context.raw_file(filename, "w") as newfile:
             with h5py.File(newfile.name, "w") as hdf:
@@ -221,7 +221,7 @@ class NewParser(MatchingParser):
 
         # finally, set data in archive
         child_archives.data.data_value = (
-            f"/uploads/{contx}/raw/{filename}#/{group_name}/value"
+            f"/uploads/{upload_id}/raw/{filename}#/{group_name}/value"
         )
         try:
             HDF5Reference.read_dataset(archive, child_archives.data.data_value)
@@ -232,7 +232,7 @@ class NewParser(MatchingParser):
             values = [item[key] for item in data_dict]
 
             try:
-                dataset_path = f"/uploads/{contx}/raw/{filename}#/{key}/value"
+                dataset_path = f"/uploads/{upload_id}/raw/{filename}#/{key}/value"
                 setattr(archive.data, key, dataset_path)
             except:
                 pass
